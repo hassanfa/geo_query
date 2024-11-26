@@ -71,9 +71,9 @@ def cli(title, description, organism, mesh, date_start, date_end, sample, entry)
     handle = Entrez.esearch(db="gds", term=search_term)
     record = Entrez.read(handle)
     handle.close()
-    print(record['Count'])
-    print(record)
-    print(record['QueryTranslation'])
+#    print(record)
+    print(f"Valid query: {record['QueryTranslation']}")
+    print(f"Found {record['Count']} {entry} for above query.")
 
 if __name__ == "__main__":
     cli()

@@ -4,7 +4,7 @@
 pip install -e .
 ```
 
-## Run
+## Example
 
 ```bash
 geofetch --mesh "fasting"  --organism human -ds 2023/01/01 --mesh "Diet, Food, and Nutrition" --entry gse --sample rna
