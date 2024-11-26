@@ -11,16 +11,18 @@ def generate_random_email():
     domain = random.choice(domains)
     return f"{username}@{domain}"
 
+
 @click.command()
-@click.option('--title', multiple=True)
-@click.option('--description', multiple=True)
-@click.option('--organism', default='Homo sapiens')
-@click.option('--mesh', multiple=True, default=['Diabetes Mellitus, Type 2'])
-@click.option('--date-start', default='"2000/01/01')
-@click.option('--date-end', default='"3000"')
-@click.option('--entry', default='gds', type=click.Choice(['gds', 'gpl', 'gse', 'gsm']))
-@click.option('--sample', default='rna', type=click.Choice(['rna', 'protein', 'genomic']))
-def main(title, description, organism, mesh, date_start, date_end, sample, entry):
+@click.option('-t', '--title', multiple=True, help='Title(s) of the study or dataset.')
+@click.option('-d', '--description', multiple=True, help='Description(s) of the study or dataset.')
+@click.option('-o', '--organism', default='Homo sapiens', help='Organism name (default: Homo sapiens).')
+@click.option('-m', '--mesh', multiple=True, default=['Diabetes Mellitus, Type 2'], help='Medical Subject Headings (MeSH) terms.')
+@click.option('-ds', '--date-start', default='2000/01/01', help='Start date for the data collection (format: YYYY/MM/DD).')
+@click.option('-de', '--date-end', default='3000', help='End date for the data collection (format: YYYY/MM/DD).')
+@click.option('-e', '--entry', default='gds', type=click.Choice(['gds', 'gpl', 'gse', 'gsm']), help='Type of entry (gds, gpl, gse, gsm).')
+@click.option('-s', '--sample', default='rna', type=click.Choice(['rna', 'protein', 'genomic']), help='Type of sample (rna, protein, genomic).')
+
+def cli(title, description, organism, mesh, date_start, date_end, sample, entry):
     """Fetch GEO data based on user input."""
 
     search_term = []
@@ -41,7 +43,6 @@ def main(title, description, organism, mesh, date_start, date_end, sample, entry
             mesh_query.append(f'{m}[MeSH Terms]')
         mesh_query = ' OR '.join(mesh_query)
         search_term.append(f'({mesh_query})')
-    print(search_term)
         
     if date_start and date_end:
         search_term.append(f'({date_start}[Publication Date] : {date_end}[Publication Date])')
@@ -75,5 +76,4 @@ def main(title, description, organism, mesh, date_start, date_end, sample, entry
     print(record['QueryTranslation'])
 
 if __name__ == "__main__":
-    main()
-
+    cli()
