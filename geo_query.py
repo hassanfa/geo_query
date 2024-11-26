@@ -4,34 +4,6 @@ import click
 import random
 import string
 
-def fetch_geo_data(tissue, organism, disease, email, start_date=None, end_date=None):
-    # Set the email for Entrez
-    Entrez.email = email
-    
-    # Construct the search term
-    search_term = f"{tissue}[Tissue] AND {organism}[Organism] AND {disease}[Disease]"
-    
-    # Add date range if provided
-    if start_date and end_date:
-        search_term += f" AND ({start_date}[Publication Date] : {end_date}[Publication Date])"
-    
-    # Search GEO
-    handle = Entrez.esearch(db="gds", term=search_term, retmax=100)
-    record = Entrez.read(handle)
-    handle.close()
-    
-    # Fetch GEO data using the IDs obtained from the search
-    geo_ids = record["IdList"]
-    list_of_GEO = []
-    
-    for geo_id in geo_ids:
-        handle = Entrez.efetch(db="gds", id=geo_id, retmode="xml")
-        geo_data = Entrez.read(handle)
-        handle.close()
-        list_of_GEO.append(geo_data)
-    
-    return list_of_GEO
-
 def generate_random_email():
     """Generate a random email address."""
     domains = ["example.com", "test.com", "demo.com"]
@@ -40,20 +12,68 @@ def generate_random_email():
     return f"{username}@{domain}"
 
 @click.command()
-@click.option('--tissue', prompt='Tissue type', help='Type of tissue to search for.')
-@click.option('--organism', prompt='Organism', help='Organism to search for.')
-@click.option('--disease', prompt='Disease', help='Disease to search for.')
-@click.option('--email', default=generate_random_email(), help='Your email for NCBI Entrez.')
-@click.option('--start-date', default=None, help='Start date (YYYY/MM/DD) for publication date filter.')
-@click.option('--end-date', default=None, help='End date (YYYY/MM/DD) for publication date filter.')
-def main(tissue, organism, disease, email, start_date, end_date):
+@click.option('--title', multiple=True)
+@click.option('--description', multiple=True)
+@click.option('--organism', default='Homo sapiens')
+@click.option('--mesh', multiple=True, default=['Diabetes Mellitus, Type 2'])
+@click.option('--date-start', default='"2000/01/01')
+@click.option('--date-end', default='"3000"')
+@click.option('--entry', default='gds', type=click.Choice(['gds', 'gpl', 'gse', 'gsm']))
+@click.option('--sample', default='rna', type=click.Choice(['rna', 'protein', 'genomic']))
+def main(title, description, organism, mesh, date_start, date_end, sample, entry):
     """Fetch GEO data based on user input."""
-    print(f"Using email: {email}")  # Display the email being used
-    data = fetch_geo_data(tissue, organism, disease, email, start_date, end_date)
+
+    search_term = []
+
+
+    if sample:
+        search_term.append(f'{sample}[Sample Type]')
+
+    if entry:
+        search_term.append(f'{entry}[Entry Type]')
+
+    if organism:
+        search_term.append(f'{organism}[Organism]')
+
+    mesh_query= []
+    if mesh:
+        for m in mesh:
+            mesh_query.append(f'{m}[MeSH Terms]')
+        mesh_query = ' OR '.join(mesh_query)
+        search_term.append(f'({mesh_query})')
+    print(search_term)
+        
+    if date_start and date_end:
+        search_term.append(f'({date_start}[Publication Date] : {date_end}[Publication Date])')
+        
+    description_query = []
+    if description:
+        for d in description:
+            description_query.append(f'{d}[Description]')
+        description_query = ' OR '.join(description_query)
+        search_term.append(f'({description_query})')
+        
+    title_query = []
+    if title:
+        for t in title:
+            title_query.append(f'{t}[Title]')
+        title_query = ' OR '.join(title_query)
+        title_query = f'({title_query})'
+        
+    search_term = ' AND '.join(search_term)
+
+    Entrez.email = generate_random_email()
+
+    print(f"Using email: {Entrez.email}")
+    print(f"Query: {search_term}")
     
-    # Print the results
-    for entry in data:
-        print(entry)
+    handle = Entrez.esearch(db="gds", term=search_term)
+    record = Entrez.read(handle)
+    handle.close()
+    print(record['Count'])
+    print(record)
+    print(record['QueryTranslation'])
 
 if __name__ == "__main__":
     main()
+
