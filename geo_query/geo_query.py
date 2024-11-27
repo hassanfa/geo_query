@@ -1,12 +1,28 @@
-import numpy as np
-from Bio import Entrez
 import click
 import random
 import string
 
+from Bio import Entrez
+from enum import StrEnum
+from typing import List
+
+
+def add_doc(docstring):
+    """
+    A decorator for adding docstring. Taken shamelessly from stackexchange.
+    """
+
+    def document(func):
+        func.__doc__ = docstring
+        return func
+
+    return document
+
 
 def generate_random_email():
-    """Generate a random email address."""
+    """
+    A generator for random email address to use for Entrez
+    """
     domains = ["example.com", "test.com", "demo.com"]
     username = ''.join(
         random.choices(string.ascii_lowercase + string.digits, k=8))
@@ -15,6 +31,9 @@ def generate_random_email():
 
 
 def build_query(terms, query_type, operator='OR'):
+    """
+    A query builder given list of terms, query type, and aggregation operator
+    """
     query = []
     operator = f' {operator} '
     if terms:
@@ -28,29 +47,35 @@ def build_query(terms, query_type, operator='OR'):
 @click.option('-o',
               '--organism',
               default='Homo sapiens',
+              show_default=True,
               help='Organism name (default: Homo sapiens).')
 @click.option('-ds',
               '--date-start',
               default='2000/01/01',
+              show_default=True,
               help='Start date for the data collection (format: YYYY/MM/DD).')
 @click.option('-de',
               '--date-end',
               default='3000',
+              show_default=True,
               help='End date for the data collection (format: YYYY/MM/DD).')
 @click.option('-e',
               '--entry',
               default='gse',
+              show_default=True,
               type=click.Choice(['gds', 'gpl', 'gse', 'gsm']),
               help='Type of entry (gds, gpl, gse, gsm).')
 @click.option('-m',
               '--mesh',
               multiple=True,
+              show_default=True,
               default=['Diabetes Mellitus, Type 2'],
               help='Medical Subject Headings (MeSH) terms.')
 @click.option('-s',
               '--sample',
               multiple=True,
               default=['rna'],
+              show_default=True,
               type=click.Choice(['rna', 'mpss', 'sage', 'protein', 'genomic']),
               help='Type of sample.')
 @click.option('-t',
@@ -61,6 +86,7 @@ def build_query(terms, query_type, operator='OR'):
               '--description',
               multiple=True,
               help='Description(s) of the study or dataset.')
+@add_doc("Query GEO database for series, samples, and datasets.}")
 def cli(title, description, organism, mesh, date_start, date_end, sample,
         entry):
     """Fetch GEO data based on user input."""
@@ -92,12 +118,12 @@ def cli(title, description, organism, mesh, date_start, date_end, sample,
     print(f"Query: {search_term}")
 
 
-#    handle = Entrez.esearch(db="gds", term=search_term)
-#    record = Entrez.read(handle)
-#    handle.close()
-#    print(record)
-#    print(f"Valid query: {record['QueryTranslation']}")
-#    print(f"Found {record['Count']} {entry} for above query.")
+    handle = Entrez.esearch(db="gds", term=search_term)
+    record = Entrez.read(handle)
+    handle.close()
+    print(record)
+    print(f"Valid query: {record['QueryTranslation']}")
+    print(f"Found {record['Count']} {entry} for above query.")
 
 if __name__ == "__main__":
     cli()
