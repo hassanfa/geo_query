@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/hassanfa/geo_query/compare/v1.1.0...v2.0.0) (2024-11-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* add multiple items to sample entry and add a function for building query
+
+### Features
+
+* add multiple items to sample entry and add a function for building query ([9ea9581](https://github.com/hassanfa/geo_query/commit/9ea95812949827eca522448da18b3bcec8ae8fb4))
+
 ## [1.1.0](https://github.com/hassanfa/geo_query/compare/v1.0.0...v1.1.0) (2024-11-26)
 
 
