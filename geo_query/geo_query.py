@@ -7,6 +7,7 @@ from Bio import Entrez
 from enum import StrEnum
 from typing import List
 
+
 def add_doc(docstring):
     """
     A decorator for adding docstring. Taken shamelessly from stackexchange.
@@ -44,6 +45,12 @@ def build_query(terms, query_type, operator='OR'):
 
 
 @click.command()
+@click.option('-C',
+              '--count',
+              default=False,
+              is_flag=True,
+              show_default=True,
+              help='Print only count')
 @click.option('-o',
               '--organism',
               default='Homo sapiens',
@@ -71,6 +78,12 @@ def build_query(terms, query_type, operator='OR'):
               show_default=True,
               default=['Diabetes Mellitus, Type 2'],
               help='Medical Subject Headings (MeSH) terms.')
+@click.option('-mo',
+              '--mesh-operator',
+              default='OR',
+              show_default=True,
+              type=click.Choice(['OR', 'AND']),
+              help='Operator for Medical Subject Headings (MeSH) terms.')
 @click.option('-s',
               '--sample',
               multiple=True,
@@ -88,16 +101,18 @@ def build_query(terms, query_type, operator='OR'):
               help='Description(s) of the study or dataset.')
 @click.option(
     "--log-level",
-    default='NOTSET',
-    type=click.Choice(['INFO', 'DEBUG', 'NOTSET']),
+    default='INFO',
+    type=click.Choice(['INFO', 'DEBUG']),
     help="Logging level in terms of urgency",
     show_default=True,
 )
 @add_doc("Query GEO database for series, samples, and datasets.}")
-def cli(title, description, organism, mesh, date_start, date_end, sample,
-        entry, log_level):
+def cli(title, description, organism, mesh, mesh_operator, date_start,
+        date_end, sample, entry, log_level, count):
     """Fetch GEO data based on user input."""
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
 
@@ -110,7 +125,9 @@ def cli(title, description, organism, mesh, date_start, date_end, sample,
     search_term.append(
         build_query(terms=sample, query_type='Sample Type', operator='OR'))
     search_term.append(
-        build_query(terms=mesh, query_type='MeSH Terms', operator='OR'))
+        build_query(terms=mesh,
+                    query_type='MeSH Terms',
+                    operator=mesh_operator))
     if description:
         search_term.append(
             build_query(terms=description,
@@ -127,13 +144,17 @@ def cli(title, description, organism, mesh, date_start, date_end, sample,
     logger.debug(f"Using email: {Entrez.email}")
     logger.debug(f"Query: {search_term}")
 
-
     handle = Entrez.esearch(db="gds", term=search_term)
+    logger.debug(f"{handle}")
     record = Entrez.read(handle)
     handle.close()
     logger.debug(record)
     logger.debug(f"Valid query: {record['QueryTranslation']}")
-    click.echo(f"Found {record['Count']} {entry} for above query.")
+    if count:
+        click.echo(f"{record['Count']}")
+    else:
+        click.echo(f"Found {record['Count']} {entry} for above query.")
+
 
 if __name__ == "__main__":
     cli()
