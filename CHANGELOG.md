@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.0](https://github.com/hassanfa/geo_query/compare/v2.0.0...v2.1.0) (2024-11-28)
+
+
+### Features
+
+* add count and mesh operator functionality ([79b43bb](https://github.com/hassanfa/geo_query/commit/79b43bbd6dc7568b96efff0bd731a3a6472c8349))
+* add logger to print output ([982fada](https://github.com/hassanfa/geo_query/commit/982fada74f9a036b10a5985e8bbf8ceb90c77bca))
+
 ## [2.0.0](https://github.com/hassanfa/geo_query/compare/v1.1.0...v2.0.0) (2024-11-27)
 
 
