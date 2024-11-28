@@ -1,11 +1,11 @@
 import click
 import random
 import string
+import logging
 
 from Bio import Entrez
 from enum import StrEnum
 from typing import List
-
 
 def add_doc(docstring):
     """
@@ -86,10 +86,20 @@ def build_query(terms, query_type, operator='OR'):
               '--description',
               multiple=True,
               help='Description(s) of the study or dataset.')
+@click.option(
+    "--log-level",
+    default='NOTSET',
+    type=click.Choice(['INFO', 'DEBUG', 'NOTSET']),
+    help="Logging level in terms of urgency",
+    show_default=True,
+)
 @add_doc("Query GEO database for series, samples, and datasets.}")
 def cli(title, description, organism, mesh, date_start, date_end, sample,
-        entry):
+        entry, log_level):
     """Fetch GEO data based on user input."""
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    logger.setLevel(log_level)
 
     search_term = []
 
@@ -114,16 +124,16 @@ def cli(title, description, organism, mesh, date_start, date_end, sample,
 
     Entrez.email = generate_random_email()
 
-    print(f"Using email: {Entrez.email}")
-    print(f"Query: {search_term}")
+    logger.debug(f"Using email: {Entrez.email}")
+    logger.debug(f"Query: {search_term}")
 
 
     handle = Entrez.esearch(db="gds", term=search_term)
     record = Entrez.read(handle)
     handle.close()
-    print(record)
-    print(f"Valid query: {record['QueryTranslation']}")
-    print(f"Found {record['Count']} {entry} for above query.")
+    logger.debug(record)
+    logger.debug(f"Valid query: {record['QueryTranslation']}")
+    click.echo(f"Found {record['Count']} {entry} for above query.")
 
 if __name__ == "__main__":
     cli()
