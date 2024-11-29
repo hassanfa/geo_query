@@ -53,7 +53,8 @@ def build_query(terms, query_type, operator='OR'):
               help='Print only count')
 @click.option('-o',
               '--organism',
-              default='Homo sapiens',
+              default=['Homo sapiens'],
+              multiple=True,
               show_default=True,
               help='Organism name (default: Homo sapiens).')
 @click.option('-ds',
@@ -119,7 +120,12 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     search_term = []
 
     search_term.append(f'{entry}[Entry Type]')
-    search_term.append(f'{organism}[Organism]')
+
+    search_term.append(
+        build_query(terms=organism,
+                    query_type='Organism',
+                    operator='OR'))
+
     search_term.append(
         f'({date_start}[Publication Date] : {date_end}[Publication Date])')
     search_term.append(
