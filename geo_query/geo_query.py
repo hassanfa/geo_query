@@ -20,6 +20,15 @@ def add_doc(docstring):
     return document
 
 
+def entrez_esearch(search_term, retmax, logger):
+    handle = Entrez.esearch(db="gds", term=search_term, retmax=retmax)
+    logger.debug(f"{handle}")
+    record = Entrez.read(handle)
+    handle.close()
+
+    return record
+
+
 def generate_random_email():
     """
     A generator for random email address to use for Entrez
@@ -148,28 +157,20 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     logger.debug(f"Using email: {Entrez.email}")
     logger.debug(f"Query: {search_term}")
 
-    handle = Entrez.esearch(db="gds", term=search_term)
-    logger.debug(f"{handle}")
-    record = Entrez.read(handle)
-    handle.close()
+    record = entrez_esearch(search_term=search_term, retmax=0, logger=logger)
     logger.debug(record)
     logger.debug(f"Valid query: {record['QueryTranslation']}")
     if count:
         click.echo(f"{record['Count']}")
     else:
-        handle = Entrez.esearch(db="gds", term=search_term, retmax=0)
-        record = Entrez.read(handle)
-        handle.close()
         max_print = 50
         if int(record["Count"]) > max_print:
             logger.info(
                 f"There are {record['Count']} items found. Printing only the first {max_print}"
             )
-        handle = Entrez.esearch(db="gds",
-                                term=search_term,
-                                retmax=record["Count"][0:max_print - 1])
-        record = Entrez.read(handle)
-        handle.close()
+        record = entrez_esearch(search_term=search_term,
+                                retmax=record["Count"][0:max_print - 1],
+                                logger=logger)
         click.echo(f"all samples: {record['IdList'][0:49]}")
 
 
