@@ -45,12 +45,12 @@ def build_query(terms, query_type, operator='OR'):
 
 
 @click.command()
-@click.option('-C',
-              '--count',
+@click.option('--count/--print-records',
+              'count',
               default=False,
               is_flag=True,
               show_default=True,
-              help='Print only count')
+              help='print counts or print records.')
 @click.option('-o',
               '--organism',
               default=['Homo sapiens'],
@@ -159,7 +159,16 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     if count:
         click.echo(f"{record['Count']}")
     else:
-        click.echo(f"Found {record['Count']} {entry} for above query.")
+        handle = Entrez.esearch(db="gds", term=search_term, retmax=0)
+        record = Entrez.read(handle)
+        handle.close() 
+        max_print = 50
+        if int(record["Count"]) > max_print:
+            logger.info(f"There are {record['Count']} items found. Printing only the first {max_print}")
+            handle = Entrez.esearch(db="gds", term=search_term, retmax=record["Count"][0:max_print-1])
+            record = Entrez.read(handle)
+            handle.close()
+        click.echo(f"all samples: {record['IdList'][0:49]}")
 
 
 if __name__ == "__main__":
