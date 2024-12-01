@@ -122,9 +122,7 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     search_term.append(f'{entry}[Entry Type]')
 
     search_term.append(
-        build_query(terms=organism,
-                    query_type='Organism',
-                    operator='OR'))
+        build_query(terms=organism, query_type='Organism', operator='OR'))
 
     search_term.append(
         f'({date_start}[Publication Date] : {date_end}[Publication Date])')
@@ -161,13 +159,17 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     else:
         handle = Entrez.esearch(db="gds", term=search_term, retmax=0)
         record = Entrez.read(handle)
-        handle.close() 
+        handle.close()
         max_print = 50
         if int(record["Count"]) > max_print:
-            logger.info(f"There are {record['Count']} items found. Printing only the first {max_print}")
-            handle = Entrez.esearch(db="gds", term=search_term, retmax=record["Count"][0:max_print-1])
-            record = Entrez.read(handle)
-            handle.close()
+            logger.info(
+                f"There are {record['Count']} items found. Printing only the first {max_print}"
+            )
+        handle = Entrez.esearch(db="gds",
+                                term=search_term,
+                                retmax=record["Count"][0:max_print - 1])
+        record = Entrez.read(handle)
+        handle.close()
         click.echo(f"all samples: {record['IdList'][0:49]}")
 
 
