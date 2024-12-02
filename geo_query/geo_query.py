@@ -89,12 +89,14 @@ def build_query(terms, query_type, operator='OR'):
               default='3000',
               show_default=True,
               help='End date for the data collection (format: YYYY/MM/DD).')
-@click.option('-e',
-              '--entry',
-              default='gsm',
-              show_default=True,
-              type=click.Choice(['gse', 'gsm']),
-              help='Entry type to search. GPL and GDS support might be added if/when needed.')
+@click.option(
+    '-e',
+    '--entry',
+    default='gsm',
+    show_default=True,
+    type=click.Choice(['gse', 'gsm']),
+    help=
+    'Entry type to search. GPL and GDS support might be added if/when needed.')
 @click.option('-m',
               '--mesh',
               multiple=True,
@@ -186,7 +188,7 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
         click.echo(f"all samples: {record['IdList'][0:49]}")
 
         summary = entrez_gds.esummary(search_id=record['IdList'])
-        
+
         # check if summary actually has an output!
         if summary[1]['entryType'].lower() == 'gsm':
             df = pl.DataFrame([{
@@ -205,21 +207,23 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
                 df = df.with_columns((pl.lit(col) + pl.col(col)).alias(col))
         elif summary[1]['entryType'].lower() == 'gse':
             df = pl.DataFrame([{
-                "GSE": s["Accession"],
-                "GPL": s["GPL"],
-                "GSEtaxon": s["taxon"],
+                "GSE":
+                s["Accession"],
+                "GPL":
+                s["GPL"],
+                "GSEtaxon":
+                s["taxon"],
                 "GSM": [sample['Accession'] for sample in s['Samples']]
             } for s in summary])
-
 
             df = df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
 
             for col in ['GSE', 'mesh']:
                 df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
 
-        pl.Config.set_tbl_rows(-1) 
+        pl.Config.set_tbl_rows(-1)
         click.echo(df)
-        pl.Config.set_tbl_rows(10) 
+        pl.Config.set_tbl_rows(10)
 
 
 if __name__ == "__main__":
