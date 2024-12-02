@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.0.0](https://github.com/hassanfa/geo_query/compare/v3.1.0...v4.0.0) (2024-12-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* add file output write
+
+### Features
+
+* add file output write ([ac6270e](https://github.com/hassanfa/geo_query/commit/ac6270ec5a5d0159da5001bd31438ec9a1371521))
+* add version to init ([b7be038](https://github.com/hassanfa/geo_query/commit/b7be0388f70d4915dd0c46ae0829e8caf9f32866))
+* remove redundant version ([daa416c](https://github.com/hassanfa/geo_query/commit/daa416cd0459bdbbf57ec13321951af96e7be494))
+
+
+### Bug Fixes
+
+* remove redunant version ([20d1307](https://github.com/hassanfa/geo_query/commit/20d13079ec12bfa3d48d0368e6263b06e056701e))
+
 ## [3.1.0](https://github.com/hassanfa/geo_query/compare/v3.0.0...v3.1.0) (2024-12-02)
 
 
