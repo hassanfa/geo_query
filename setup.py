@@ -1,8 +1,13 @@
 from setuptools import setup, find_packages
+import os
 
-# Read the version from version.txt
-with open('version.txt') as version_file:
-    version = version_file.read().strip()
+
+package_root = os.path.abspath(os.path.dirname(__file__))
+
+version = {}
+with open(os.path.join(package_root, "geo_query/version.py")) as fp:
+    exec(fp.read(), version)
+version = version["__version__"]
 
 setup(
     name='geofetch',
