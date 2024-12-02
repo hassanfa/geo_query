@@ -2,6 +2,7 @@ import click
 import random
 import string
 import logging
+import polars as pl
 
 from Bio import Entrez
 from enum import StrEnum
@@ -19,15 +20,24 @@ def add_doc(docstring):
 
     return document
 
+class EntrezGDS:
+    def __init__(self, email, logger):
+        Entrez.email = email
+        self.logger = logger
 
-def entrez_esearch(search_term, retmax, logger):
-    handle = Entrez.esearch(db="gds", term=search_term, retmax=retmax)
-    logger.debug(f"{handle}")
-    record = Entrez.read(handle)
-    handle.close()
+    def esearch(self, search_term, retmax):
+        handle = Entrez.esearch(db="gds", term=search_term, retmax=retmax)
+        self.logger.debug(f"{handle}")
+        record = Entrez.read(handle)
+        handle.close()
+        return record
 
-    return record
-
+    def esummary(self, search_id):
+        handle = Entrez.esummary(db="gds", id=search_id)
+        self.logger.debug(f"{handle}")
+        record = Entrez.read(handle)
+        handle.close()
+        return record
 
 def generate_random_email():
     """
@@ -152,12 +162,11 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
 
     search_term = ' AND '.join(search_term)
 
-    Entrez.email = generate_random_email()
-
-    logger.debug(f"Using email: {Entrez.email}")
     logger.debug(f"Query: {search_term}")
 
-    record = entrez_esearch(search_term=search_term, retmax=0, logger=logger)
+    entrez_gds = EntrezGDS(email=generate_random_email(), logger=logger)
+
+    record = entrez_gds.esearch(search_term=search_term, retmax=0)
     logger.debug(record)
     logger.debug(f"Valid query: {record['QueryTranslation']}")
     if count:
@@ -168,10 +177,28 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
             logger.info(
                 f"There are {record['Count']} items found. Printing only the first {max_print}"
             )
-        record = entrez_esearch(search_term=search_term,
-                                retmax=record["Count"][0:max_print - 1],
-                                logger=logger)
+        record = entrez_gds.esearch(search_term=search_term,
+                                retmax=record["Count"][0:max_print - 1])
+                                
         click.echo(f"all samples: {record['IdList'][0:49]}")
+
+
+        summary = entrez_gds.esummary(search_id=record['IdList'])
+        df = pl.DataFrame([{"GSE": s["GSE"],
+                    "GPL": s["GPL"],
+                    "taxon": s["taxon"],
+                    "Accession": s["Accession"]}
+                   for s in summary])
+
+        df = df.with_columns(pl.lit('body weight;Diet').alias('mesh'))
+
+        for col in ['GSE', 'mesh']:
+            df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
+
+        for col in ['GSE', 'GPL']:
+            df = df.with_columns((pl.lit(col) + pl.col(col)).alias(col))
+
+        click.echo(df.head())
 
 
 if __name__ == "__main__":
