@@ -11,7 +11,6 @@
 
 * add file output write ([ac6270e](https://github.com/hassanfa/geo_query/commit/ac6270ec5a5d0159da5001bd31438ec9a1371521))
 * add version to init ([b7be038](https://github.com/hassanfa/geo_query/commit/b7be0388f70d4915dd0c46ae0829e8caf9f32866))
-* remove redundant version ([daa416c](https://github.com/hassanfa/geo_query/commit/daa416cd0459bdbbf57ec13321951af96e7be494))
 
 
 ### Bug Fixes
