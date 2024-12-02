@@ -47,61 +47,68 @@ class EntrezGDS:
         record = self.esearch(search_term=search_term, retmax=count)
         if int(count) > 9999:
             self.logger.warning(
-                f"{count} results requested. Only the first 10 000 will be returned (GEO query limitations). Limit your search terms"
+                f"{count} results requested. Only the first 10 000 will be returned\n"
+                f"(GEO query limitations). Limit your search terms"
             )
 
-        if len(record['IdList']) == 0:
-            self.logger.warning('Search result returned zero output')
+        if len(record["IdList"]) == 0:
+            self.logger.warning("Search result returned zero output")
             return None
 
-        summary = self.esummary(search_id=record['IdList'])
-        entry_type = summary[1]['entryType'].lower()
+        summary = self.esummary(search_id=record["IdList"])
+        entry_type = summary[1]["entryType"].lower()
 
-        if entry_type == 'gsm':
+        if entry_type == "gsm":
             return self._process_gsm(summary, mesh)
-        elif entry_type == 'gse':
+        elif entry_type == "gse":
             return self._process_gse(summary, mesh)
         else:
             return None
 
     def _process_gsm(self, summary, mesh):
-        df = pl.DataFrame([{
-            "GSE": s["GSE"],
-            "GPL": s["GPL"],
-            "GSMtaxon": s["taxon"],
-            "GSM": s["Accession"]
-        } for s in summary])
+        df = pl.DataFrame(
+            [
+                {
+                    "GSE": s["GSE"],
+                    "GPL": s["GPL"],
+                    "GSMtaxon": s["taxon"],
+                    "GSM": s["Accession"],
+                }
+                for s in summary
+            ]
+        )
 
         df = self._add_mesh_column(df, mesh)
-        df = self._explode_columns(df, ['GSE', 'mesh'])
-        df = self._prefix_column(df, 'GSE')
+        df = self._explode_columns(df, ["GSE", "mesh"])
+        df = self._prefix_column(df, "GSE")
 
         return df
 
     def _process_gse(self, summary, mesh):
-        df = pl.DataFrame([{
-            "GSE":
-            s["Accession"],
-            "GPL":
-            s["GPL"],
-            "GSEtaxon":
-            s["taxon"],
-            "GSM": [sample['Accession'] for sample in s['Samples']],
-            "SampleCount":
-            len(s['Samples'])
-        } for s in summary])
+        df = pl.DataFrame(
+            [
+                {
+                    "GSE": s["Accession"],
+                    "GPL": s["GPL"],
+                    "GSEtaxon": s["taxon"],
+                    "GSM": [sample["Accession"] for sample in s["Samples"]],
+                    "SampleCount": len(s["Samples"]),
+                }
+                for s in summary
+            ]
+        )
 
         df = self._add_mesh_column(df, mesh)
-        df = self._explode_columns(df, ['GSE', 'mesh'])
+        df = self._explode_columns(df, ["GSE", "mesh"])
 
         return df
 
     def _add_mesh_column(self, df, mesh):
-        return df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
+        return df.with_columns(pl.lit(";".join(mesh)).alias("mesh"))
 
     def _explode_columns(self, df, columns):
         for col in columns:
-            df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
+            df = df.with_columns([pl.col(col).str.split(";")]).explode(col)
         return df
 
     def _prefix_column(self, df, column):
@@ -113,125 +120,145 @@ def generate_random_email():
     A generator for random email address to use for Entrez
     """
     domains = ["example.com", "test.com", "demo.com"]
-    username = ''.join(
-        random.choices(string.ascii_lowercase + string.digits, k=8))
+    username = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
     domain = random.choice(domains)
     return f"{username}@{domain}"
 
 
-def build_query(terms, query_type, operator='OR'):
+def build_query(terms, query_type, operator="OR"):
     """
     A query builder given list of terms, query type, and aggregation operator
     """
     query = []
-    operator = f' {operator} '
+    operator = f" {operator} "
     if terms:
         for term in terms:
-            query.append(f'{term}[{query_type}]')
-        return f'({operator.join(query)})'
-    return ''
+            query.append(f"{term}[{query_type}]")
+        return f"({operator.join(query)})"
+    return ""
 
 
 @click.command()
-@click.option('--count/--print-records',
-              'count',
-              default=False,
-              is_flag=True,
-              show_default=True,
-              help='print counts or print records.')
-@click.option('-o',
-              '--organism',
-              default=['Homo sapiens'],
-              multiple=True,
-              show_default=True,
-              help='Organism name (default: Homo sapiens).')
-@click.option('-ds',
-              '--date-start',
-              default='2000/01/01',
-              show_default=True,
-              help='Start date for the data collection (format: YYYY/MM/DD).')
-@click.option('-de',
-              '--date-end',
-              default='3000',
-              show_default=True,
-              help='End date for the data collection (format: YYYY/MM/DD).')
 @click.option(
-    '-e',
-    '--entry',
-    default='gsm',
+    "--count/--print-records",
+    "count",
+    default=False,
+    is_flag=True,
     show_default=True,
-    type=click.Choice(['gse', 'gsm']),
-    help=
-    'Entry type to search. GPL and GDS support might be added if/when needed.')
-@click.option('-m',
-              '--mesh',
-              multiple=True,
-              show_default=True,
-              default=['Diabetes Mellitus, Type 2'],
-              help='Medical Subject Headings (MeSH) terms.')
-@click.option('-mo',
-              '--mesh-operator',
-              default='OR',
-              show_default=True,
-              type=click.Choice(['OR', 'AND']),
-              help='Operator for Medical Subject Headings (MeSH) terms.')
-@click.option('-s',
-              '--sample',
-              multiple=True,
-              default=['rna'],
-              show_default=True,
-              type=click.Choice(['rna', 'mpss', 'sage', 'protein', 'genomic']),
-              help='Type of sample.')
-@click.option('-t',
-              '--title',
-              multiple=True,
-              help='Title(s) of the study or dataset.')
-@click.option('-d',
-              '--description',
-              multiple=True,
-              help='Description(s) of the study or dataset.')
+    help="print counts or print records.",
+)
+@click.option(
+    "-o",
+    "--organism",
+    default=["Homo sapiens"],
+    multiple=True,
+    show_default=True,
+    help="Organism name (default: Homo sapiens).",
+)
+@click.option(
+    "-ds",
+    "--date-start",
+    default="2000/01/01",
+    show_default=True,
+    help="Start date for the data collection (format: YYYY/MM/DD).",
+)
+@click.option(
+    "-de",
+    "--date-end",
+    default="3000",
+    show_default=True,
+    help="End date for the data collection (format: YYYY/MM/DD).",
+)
+@click.option(
+    "-e",
+    "--entry",
+    default="gsm",
+    show_default=True,
+    type=click.Choice(["gse", "gsm"]),
+    help="Entry type to search. GPL and GDS support might be added if/when needed.",
+)
+@click.option(
+    "-m",
+    "--mesh",
+    multiple=True,
+    show_default=True,
+    default=["Diabetes Mellitus, Type 2"],
+    help="Medical Subject Headings (MeSH) terms.",
+)
+@click.option(
+    "-mo",
+    "--mesh-operator",
+    default="OR",
+    show_default=True,
+    type=click.Choice(["OR", "AND"]),
+    help="Operator for Medical Subject Headings (MeSH) terms.",
+)
+@click.option(
+    "-s",
+    "--sample",
+    multiple=True,
+    default=["rna"],
+    show_default=True,
+    type=click.Choice(["rna", "mpss", "sage", "protein", "genomic"]),
+    help="Type of sample.",
+)
+@click.option("-t", "--title", multiple=True, help="Title(s) of the study or dataset.")
+@click.option(
+    "-d", "--description", multiple=True, help="Description(s) of the study or dataset."
+)
 @click.option(
     "--log-level",
-    default='WARNING',
-    type=click.Choice(['WARNING', 'INFO', 'DEBUG'], case_sensitive=False),
+    default="WARNING",
+    type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False),
     help="Logging level in terms of urgency",
     show_default=True,
 )
 @add_doc("Query GEO database for series, samples, and datasets.}")
-def cli(title, description, organism, mesh, mesh_operator, date_start,
-        date_end, sample, entry, log_level, count):
+def cli(
+    title,
+    description,
+    organism,
+    mesh,
+    mesh_operator,
+    date_start,
+    date_end,
+    sample,
+    entry,
+    log_level,
+    count,
+):
     """Fetch GEO data based on user input."""
     logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
 
     search_term = []
 
-    search_term.append(f'{entry}[Entry Type]')
+    search_term.append(f"{entry}[Entry Type]")
 
     search_term.append(
-        build_query(terms=organism, query_type='Organism', operator='OR'))
+        build_query(terms=organism, query_type="Organism", operator="OR")
+    )
 
     search_term.append(
-        f'({date_start}[Publication Date] : {date_end}[Publication Date])')
+        f"({date_start}[Publication Date] : {date_end}[Publication Date])"
+    )
     search_term.append(
-        build_query(terms=sample, query_type='Sample Type', operator='OR'))
+        build_query(terms=sample, query_type="Sample Type", operator="OR")
+    )
     search_term.append(
-        build_query(terms=mesh,
-                    query_type='MeSH Terms',
-                    operator=mesh_operator))
+        build_query(terms=mesh, query_type="MeSH Terms", operator=mesh_operator)
+    )
     if description:
         search_term.append(
-            build_query(terms=description,
-                        query_type='Description',
-                        operator='OR'))
+            build_query(terms=description, query_type="Description", operator="OR")
+        )
     if title:
-        search_term.append(
-            build_query(terms=title, query_type='Title', operator='OR'))
+        search_term.append(build_query(terms=title, query_type="Title", operator="OR"))
 
-    search_term = ' AND '.join(search_term)
+    search_term = " AND ".join(search_term)
 
     logger.debug(f"Query: {search_term}")
 
@@ -243,9 +270,9 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
         click.echo(f"{record['Count']}")
     else:
 
-        df = entrez_gds.process_record(search_term=search_term,
-                                       mesh=mesh,
-                                       count=record['Count'])
+        df = entrez_gds.process_record(
+            search_term=search_term, mesh=mesh, count=record["Count"]
+        )
 
         if not df is None:
             pl.Config.set_tbl_rows(-1)
