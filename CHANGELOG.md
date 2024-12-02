@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/hassanfa/geo_query/compare/v3.0.0...v3.1.0) (2024-12-02)
+
+
+### Features
+
+* encapsulate all entrez functionality in a single class ([26d602a](https://github.com/hassanfa/geo_query/commit/26d602adae2c9c3a1fd784b1af3da17923683d72))
+
 ## [3.0.0](https://github.com/hassanfa/geo_query/compare/v2.1.0...v3.0.0) (2024-12-02)
 
 
