@@ -20,7 +20,9 @@ def add_doc(docstring):
 
     return document
 
+
 class EntrezGDS:
+
     def __init__(self, email, logger):
         Entrez.email = email
         self.logger = logger
@@ -38,6 +40,7 @@ class EntrezGDS:
         record = Entrez.read(handle)
         handle.close()
         return record
+
 
 def generate_random_email():
     """
@@ -178,17 +181,17 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
                 f"There are {record['Count']} items found. Printing only the first {max_print}"
             )
         record = entrez_gds.esearch(search_term=search_term,
-                                retmax=record["Count"][0:max_print - 1])
-                                
+                                    retmax=record["Count"][0:max_print - 1])
+
         click.echo(f"all samples: {record['IdList'][0:49]}")
 
-
         summary = entrez_gds.esummary(search_id=record['IdList'])
-        df = pl.DataFrame([{"GSE": s["GSE"],
-                    "GPL": s["GPL"],
-                    "taxon": s["taxon"],
-                    "Accession": s["Accession"]}
-                   for s in summary])
+        df = pl.DataFrame([{
+            "GSE": s["GSE"],
+            "GPL": s["GPL"],
+            "taxon": s["taxon"],
+            "Accession": s["Accession"]
+        } for s in summary])
 
         df = df.with_columns(pl.lit('body weight;Diet').alias('mesh'))
 
