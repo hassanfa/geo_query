@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.1](https://github.com/hassanfa/geo_query/compare/v4.0.0...v4.0.1) (2024-12-02)
+
+
+### Bug Fixes
+
+* remove redunant version file ([b7cf49f](https://github.com/hassanfa/geo_query/commit/b7cf49f1c14b2e06ff1bce96bdb915def1c32fb5))
+
 ## [4.0.0](https://github.com/hassanfa/geo_query/compare/v3.1.0...v4.0.0) (2024-12-02)
 
 
