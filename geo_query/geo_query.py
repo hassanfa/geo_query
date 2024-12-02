@@ -8,6 +8,7 @@ from Bio import Entrez
 from enum import StrEnum
 from typing import List
 
+from geo_query import __version__ as version
 
 def add_doc(docstring):
     """
@@ -213,7 +214,11 @@ def build_query(terms, query_type, operator="OR"):
     help="Logging level in terms of urgency",
     show_default=True,
 )
-@add_doc("Query GEO database for series, samples, and datasets.}")
+@click.option("-fw", '--file-write', is_flag=True, default=False, help='flag to enable to write to file')
+@click.option("-fn", '--file-name', help='Output file name')
+@click.option("-ft", '--file-type', default = 'csv', type=click.Choice(["csv", "excel"]), show_default=True,
+    help='Output file type.')
+@add_doc(f"Query GEO database for series, samples, and datasets. version {version}")
 def cli(
     title,
     description,
@@ -226,6 +231,9 @@ def cli(
     entry,
     log_level,
     count,
+    file_write,
+    file_name,
+    file_type,
 ):
     """Fetch GEO data based on user input."""
     logging.basicConfig(
