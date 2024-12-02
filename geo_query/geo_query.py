@@ -91,10 +91,10 @@ def build_query(terms, query_type, operator='OR'):
               help='End date for the data collection (format: YYYY/MM/DD).')
 @click.option('-e',
               '--entry',
-              default='gse',
+              default='gsm',
               show_default=True,
-              type=click.Choice(['gds', 'gpl', 'gse', 'gsm']),
-              help='Type of entry (gds, gpl, gse, gsm).')
+              type=click.Choice(['gse', 'gsm']),
+              help='Entry type to search. GPL and GDS support might be added if/when needed.')
 @click.option('-m',
               '--mesh',
               multiple=True,
@@ -175,7 +175,7 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     if count:
         click.echo(f"{record['Count']}")
     else:
-        max_print = 50
+        max_print = 20
         if int(record["Count"]) > max_print:
             logger.info(
                 f"There are {record['Count']} items found. Printing only the first {max_print}"
@@ -186,22 +186,40 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
         click.echo(f"all samples: {record['IdList'][0:49]}")
 
         summary = entrez_gds.esummary(search_id=record['IdList'])
-        df = pl.DataFrame([{
-            "GSE": s["GSE"],
-            "GPL": s["GPL"],
-            "taxon": s["taxon"],
-            "Accession": s["Accession"]
-        } for s in summary])
+        
+        # check if summary actually has an output!
+        if summary[1]['entryType'].lower() == 'gsm':
+            df = pl.DataFrame([{
+                "GSE": s["GSE"],
+                "GPL": s["GPL"],
+                "GSMtaxon": s["taxon"],
+                "GSM": s["Accession"]
+            } for s in summary])
 
-        df = df.with_columns(pl.lit('body weight;Diet').alias('mesh'))
+            df = df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
 
-        for col in ['GSE', 'mesh']:
-            df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
+            for col in ['GSE', 'mesh']:
+                df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
 
-        for col in ['GSE', 'GPL']:
-            df = df.with_columns((pl.lit(col) + pl.col(col)).alias(col))
+            for col in ['GSE']:
+                df = df.with_columns((pl.lit(col) + pl.col(col)).alias(col))
+        elif summary[1]['entryType'].lower() == 'gse':
+            df = pl.DataFrame([{
+                "GSE": s["Accession"],
+                "GPL": s["GPL"],
+                "GSEtaxon": s["taxon"],
+                "GSM": [sample['Accession'] for sample in s['Samples']]
+            } for s in summary])
 
-        click.echo(df.head())
+
+            df = df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
+
+            for col in ['GSE', 'mesh']:
+                df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
+
+        pl.Config.set_tbl_rows(-1) 
+        click.echo(df)
+        pl.Config.set_tbl_rows(10) 
 
 
 if __name__ == "__main__":
