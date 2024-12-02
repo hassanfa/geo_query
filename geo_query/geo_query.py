@@ -31,6 +31,8 @@ class EntrezGDS:
         handle = Entrez.esearch(db="gds", term=search_term, retmax=retmax)
         self.logger.debug(f"{handle}")
         record = Entrez.read(handle)
+        self.logger.debug(record)
+        self.logger.debug(f"Valid query: {record['QueryTranslation']}")
         handle.close()
         return record
 
@@ -40,6 +42,70 @@ class EntrezGDS:
         record = Entrez.read(handle)
         handle.close()
         return record
+
+    def process_record(self, search_term, mesh, count):
+        record = self.esearch(search_term=search_term, retmax=count)
+        if int(count) > 9999:
+            self.logger.warning(
+                f"{count} results requested. Only the first 10 000 will be returned (GEO query limitations). Limit your search terms"
+            )
+
+        if len(record['IdList']) == 0:
+            self.logger.warning('Search result returned zero output')
+            return None
+
+        summary = self.esummary(search_id=record['IdList'])
+        entry_type = summary[1]['entryType'].lower()
+
+        if entry_type == 'gsm':
+            return self._process_gsm(summary, mesh)
+        elif entry_type == 'gse':
+            return self._process_gse(summary, mesh)
+        else:
+            return None
+
+    def _process_gsm(self, summary, mesh):
+        df = pl.DataFrame([{
+            "GSE": s["GSE"],
+            "GPL": s["GPL"],
+            "GSMtaxon": s["taxon"],
+            "GSM": s["Accession"]
+        } for s in summary])
+
+        df = self._add_mesh_column(df, mesh)
+        df = self._explode_columns(df, ['GSE', 'mesh'])
+        df = self._prefix_column(df, 'GSE')
+
+        return df
+
+    def _process_gse(self, summary, mesh):
+        df = pl.DataFrame([{
+            "GSE":
+            s["Accession"],
+            "GPL":
+            s["GPL"],
+            "GSEtaxon":
+            s["taxon"],
+            "GSM": [sample['Accession'] for sample in s['Samples']],
+            "SampleCount":
+            len(s['Samples'])
+        } for s in summary])
+
+        df = self._add_mesh_column(df, mesh)
+        df = self._explode_columns(df, ['GSE', 'mesh'])
+
+        return df
+
+    def _add_mesh_column(self, df, mesh):
+        return df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
+
+    def _explode_columns(self, df, columns):
+        for col in columns:
+            df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
+        return df
+
+    def _prefix_column(self, df, column):
+        return df.with_columns((pl.lit(column) + pl.col(column)).alias(column))
 
 
 def generate_random_email():
@@ -126,8 +192,8 @@ def build_query(terms, query_type, operator='OR'):
               help='Description(s) of the study or dataset.')
 @click.option(
     "--log-level",
-    default='INFO',
-    type=click.Choice(['INFO', 'DEBUG']),
+    default='WARNING',
+    type=click.Choice(['WARNING', 'INFO', 'DEBUG'], case_sensitive=False),
     help="Logging level in terms of urgency",
     show_default=True,
 )
@@ -172,58 +238,20 @@ def cli(title, description, organism, mesh, mesh_operator, date_start,
     entrez_gds = EntrezGDS(email=generate_random_email(), logger=logger)
 
     record = entrez_gds.esearch(search_term=search_term, retmax=0)
-    logger.debug(record)
-    logger.debug(f"Valid query: {record['QueryTranslation']}")
+
     if count:
         click.echo(f"{record['Count']}")
     else:
-        max_print = 20
-        if int(record["Count"]) > max_print:
-            logger.info(
-                f"There are {record['Count']} items found. Printing only the first {max_print}"
-            )
-        record = entrez_gds.esearch(search_term=search_term,
-                                    retmax=record["Count"][0:max_print - 1])
 
-        click.echo(f"all samples: {record['IdList'][0:49]}")
+        df = entrez_gds.process_record(search_term=search_term,
+                                       mesh=mesh,
+                                       count=record['Count'])
 
-        summary = entrez_gds.esummary(search_id=record['IdList'])
-
-        # check if summary actually has an output!
-        if summary[1]['entryType'].lower() == 'gsm':
-            df = pl.DataFrame([{
-                "GSE": s["GSE"],
-                "GPL": s["GPL"],
-                "GSMtaxon": s["taxon"],
-                "GSM": s["Accession"]
-            } for s in summary])
-
-            df = df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
-
-            for col in ['GSE', 'mesh']:
-                df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
-
-            for col in ['GSE']:
-                df = df.with_columns((pl.lit(col) + pl.col(col)).alias(col))
-        elif summary[1]['entryType'].lower() == 'gse':
-            df = pl.DataFrame([{
-                "GSE":
-                s["Accession"],
-                "GPL":
-                s["GPL"],
-                "GSEtaxon":
-                s["taxon"],
-                "GSM": [sample['Accession'] for sample in s['Samples']]
-            } for s in summary])
-
-            df = df.with_columns(pl.lit(";".join(mesh)).alias('mesh'))
-
-            for col in ['GSE', 'mesh']:
-                df = df.with_columns([pl.col(col).str.split(';')]).explode(col)
-
-        pl.Config.set_tbl_rows(-1)
-        click.echo(df)
-        pl.Config.set_tbl_rows(10)
+        if not df is None:
+            pl.Config.set_tbl_rows(-1)
+            click.echo(df.shape)
+            click.echo(df.head())
+            pl.Config.set_tbl_rows(10)
 
 
 if __name__ == "__main__":
