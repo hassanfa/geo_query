@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.0.0](https://github.com/hassanfa/geo_query/compare/v2.1.0...v3.0.0) (2024-12-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* limit output only for GSE and GSM and print df for both
+* add EntrezGDS class and print an output in df format
+
+### Features
+
+* add EntrezGDS class and print an output in df format ([7d328b9](https://github.com/hassanfa/geo_query/commit/7d328b9bd0118f8a6337da5500d43cc36af19d46))
+* add option for multiple organism ([c93e73c](https://github.com/hassanfa/geo_query/commit/c93e73c70836b06d984075201481b4bb0ff58784))
+* add option to print ids of result records ([3c3c1b5](https://github.com/hassanfa/geo_query/commit/3c3c1b58a4ccd0b0927f7e21924c3051106da232))
+* add polars to the requirements ([e49a353](https://github.com/hassanfa/geo_query/commit/e49a353d3ed52c6117d2899b4d171e58b6882cb6))
+* limit output only for GSE and GSM and print df for both ([cde22e0](https://github.com/hassanfa/geo_query/commit/cde22e0848d41d7a8f54eaee3be8a4261aba49aa))
+* move geo esearch into its own function ([2b2e1e0](https://github.com/hassanfa/geo_query/commit/2b2e1e0f5a7f18133baca009b488d56b4e1b74d8))
+
 ## [2.1.0](https://github.com/hassanfa/geo_query/compare/v2.0.0...v2.1.0) (2024-11-28)
 
 
