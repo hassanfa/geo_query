@@ -1,3 +1,6 @@
+"""
+Main function to query GEO using a click interface
+"""
 import os
 import random
 import string
@@ -12,10 +15,16 @@ from geo_query.version import __version__ as version
 
 
 def default_filename():
+    """
+    creates a default filename with a today date suffix
+    """
     return f"geofetch_{datetime.now().strftime('%Y%m%d')}"
 
 
 def validate_filename(ctx, param, value):
+    """
+    validates filename and handles the errors e.g., file exists 
+    """
     if value is None:
         value = default_filename()
 
@@ -40,12 +49,18 @@ def add_doc(docstring):
 
 
 class EntrezGDS:
+    """
+    A class to interface Entrez to query GEO and process the results
+    """
 
     def __init__(self, email, logger):
         Entrez.email = email
         self.logger = logger
 
     def esearch(self, search_term, retmax):
+        """
+        Query GEO database for a search term and retmax numbers
+        """
         handle = Entrez.esearch(db="gds", term=search_term, retmax=retmax)
         self.logger.debug(f"{handle}")
         record = Entrez.read(handle)
@@ -55,6 +70,9 @@ class EntrezGDS:
         return record
 
     def esummary(self, search_id):
+        """
+        Query GEO for the IDs that have been found previously using esearch
+        """
         handle = Entrez.esummary(db="gds", id=search_id)
         self.logger.debug(f"{handle}")
         record = Entrez.read(handle)
@@ -62,6 +80,10 @@ class EntrezGDS:
         return record
 
     def process_record(self, search_term, mesh, count):
+        """
+        Query GEO using the esearch and search_term for count number of items
+        and return a polars dataframe
+        """
         record = self.esearch(search_term=search_term, retmax=count)
         if int(count) > 9999:
             self.logger.warning(
@@ -154,6 +176,9 @@ def build_query(terms, query_type, operator="OR"):
 
 
 def initialize_logger(log_level):
+    """
+    Initalizes logger and encapsulates it
+    """
     logging.basicConfig(
         level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
