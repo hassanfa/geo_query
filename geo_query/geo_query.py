@@ -1,6 +1,7 @@
 """
 Main function to query GEO using a click interface
 """
+
 import os
 import random
 import string
@@ -23,7 +24,7 @@ def default_filename():
 
 def validate_filename(ctx, param, value):
     """
-    validates filename and handles the errors e.g., file exists 
+    validates filename and handles the errors e.g., file exists
     """
     if value is None:
         value = default_filename()
