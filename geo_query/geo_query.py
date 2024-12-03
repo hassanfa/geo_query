@@ -76,8 +76,7 @@ class EntrezGDS:
 
         if entry_type == "gsm":
             return self._process_gsm(summary, mesh)
-        else:
-            return self._process_gse(summary, mesh)
+        return self._process_gse(summary, mesh)
 
     def _process_gsm(self, summary, mesh):
         df = pl.DataFrame(
