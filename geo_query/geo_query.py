@@ -138,6 +138,14 @@ def build_query(terms, query_type, operator="OR"):
         return f"({operator.join(query)})"
     return ""
 
+def initialize_logger(log_level):
+    logging.basicConfig(
+        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(log_level)
+    return logger
+
 
 @click.command()
 @click.option(
@@ -236,11 +244,7 @@ def cli(
     file_type,
 ):
     """Fetch GEO data based on user input."""
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    logger = logging.getLogger(__name__)
-    logger.setLevel(log_level)
+    logger = initialize_logger(log_level)
 
     search_term = []
 
@@ -281,6 +285,9 @@ def cli(
         df = entrez_gds.process_record(
             search_term=search_term, mesh=mesh, count=record["Count"]
         )
+
+        if file_write:
+            click.echo('writing to file')
 
         if not df is None:
             pl.Config.set_tbl_rows(-1)
