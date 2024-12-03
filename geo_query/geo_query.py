@@ -10,8 +10,10 @@ from Bio import Entrez
 
 from geo_query.version import __version__ as version
 
+
 def default_filename():
     return f"geofetch_{datetime.now().strftime('%Y%m%d')}"
+
 
 def validate_filename(ctx, param, value):
     if value is None:
@@ -150,6 +152,7 @@ def build_query(terms, query_type, operator="OR"):
         return f"({operator.join(query)})"
     return ""
 
+
 def initialize_logger(log_level):
     logging.basicConfig(
         level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -234,15 +237,33 @@ def initialize_logger(log_level):
     help="Logging level in terms of urgency",
     show_default=True,
 )
-@click.option("-fw", '--file-write', is_flag=True, default=False, help='flag to enable to write to file')
-@click.option("-fn", '--file-name', default=default_filename(), show_default=True, callback=validate_filename, 
-              help='Output file name.')
-@click.option("-ft", '--file-type', default = 'csv', type=click.Choice(["csv", "excel"]), show_default=True,
-    help='Output file type.')
+@click.option(
+    "-fw",
+    "--file-write",
+    is_flag=True,
+    default=False,
+    help="flag to enable to write to file",
+)
+@click.option(
+    "-fn",
+    "--file-name",
+    default=default_filename(),
+    show_default=True,
+    callback=validate_filename,
+    help="Output file name.",
+)
+@click.option(
+    "-ft",
+    "--file-type",
+    default="csv",
+    type=click.Choice(["csv", "excel"]),
+    show_default=True,
+    help="Output file type.",
+)
 @add_doc(f"Query GEO database for series, samples, and datasets. version {version}")
 @click.pass_context
 def cli(
-        ctx,
+    ctx,
     title,
     description,
     organism,
@@ -261,9 +282,8 @@ def cli(
     """Fetch GEO data based on user input."""
     logger = initialize_logger(log_level)
 
-
     # if output file exists, throw an error and exit
-    if hasattr(ctx, 'filename_error'):
+    if hasattr(ctx, "filename_error"):
         logger.error(ctx.filename_error)
         ctx.exit(1)
     else:
@@ -310,7 +330,7 @@ def cli(
         )
 
         if file_write:
-            click.echo('writing to file')
+            click.echo("writing to file")
 
         if not df is None:
             pl.Config.set_tbl_rows(-1)
