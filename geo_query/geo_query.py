@@ -8,7 +8,7 @@ from Bio import Entrez
 from enum import StrEnum
 from typing import List
 
-from geo_query import __version__ as version
+from geo_query.version import __version__ as version
 
 def add_doc(docstring):
     """
