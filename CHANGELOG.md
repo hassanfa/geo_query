@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.1.0](https://github.com/hassanfa/geo_query/compare/v4.0.0...v4.1.0) (2024-12-03)
+
+
+### Features
+
+* add funcionality to handle the output file ([1aa2ba9](https://github.com/hassanfa/geo_query/commit/1aa2ba96bdc00b075f21852ae4a4caf21df8d378))
+
+
+### Bug Fixes
+
+* remove redunant version file ([b7cf49f](https://github.com/hassanfa/geo_query/commit/b7cf49f1c14b2e06ff1bce96bdb915def1c32fb5))
+* version import ([9cb7ea2](https://github.com/hassanfa/geo_query/commit/9cb7ea2d62d440520ca78feaf00f73c20ff9ea21))
+
 ## [4.0.0](https://github.com/hassanfa/geo_query/compare/v3.1.0...v4.0.0) (2024-12-02)
 
 
