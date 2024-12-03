@@ -1,17 +1,14 @@
-import click
 import os
 import random
 import string
 import logging
-import polars as pl
-
 from datetime import datetime
+
+import click
+import polars as pl
 from Bio import Entrez
-from enum import StrEnum
-from typing import List
 
 from geo_query.version import __version__ as version
-
 
 def default_filename():
     return f"geofetch_{datetime.now().strftime('%Y%m%d')}"
@@ -241,8 +238,8 @@ def initialize_logger(log_level):
     show_default=True,
 )
 @click.option("-fw", '--file-write', is_flag=True, default=False, help='flag to enable to write to file')
-@click.option("-fn", '--file-name', callback=validate_filename, 
-              help='Output file name (default: geofetch_YYYYMMDD)')
+@click.option("-fn", '--file-name', default=default_filename(), show_default=True, callback=validate_filename, 
+              help='Output file name.')
 @click.option("-ft", '--file-type', default = 'csv', type=click.Choice(["csv", "excel"]), show_default=True,
     help='Output file type.')
 @add_doc(f"Query GEO database for series, samples, and datasets. version {version}")
