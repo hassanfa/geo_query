@@ -1,14 +1,32 @@
 import click
+import os
 import random
 import string
 import logging
 import polars as pl
 
+from datetime import datetime
 from Bio import Entrez
 from enum import StrEnum
 from typing import List
 
 from geo_query.version import __version__ as version
+
+
+def default_filename():
+    return f"geofetch_{datetime.now().strftime('%Y%m%d')}"
+
+def validate_filename(ctx, param, value):
+    if value is None:
+        value = default_filename()
+
+    if os.path.exists(value):
+        # pass error to context to handle in the main
+        ctx.filename_error = f"Error: The file '{value}' already exists."
+        return value
+
+    return value
+
 
 def add_doc(docstring):
     """
@@ -223,11 +241,14 @@ def initialize_logger(log_level):
     show_default=True,
 )
 @click.option("-fw", '--file-write', is_flag=True, default=False, help='flag to enable to write to file')
-@click.option("-fn", '--file-name', help='Output file name')
+@click.option("-fn", '--file-name', callback=validate_filename, 
+              help='Output file name (default: geofetch_YYYYMMDD)')
 @click.option("-ft", '--file-type', default = 'csv', type=click.Choice(["csv", "excel"]), show_default=True,
     help='Output file type.')
 @add_doc(f"Query GEO database for series, samples, and datasets. version {version}")
+@click.pass_context
 def cli(
+        ctx,
     title,
     description,
     organism,
@@ -245,6 +266,14 @@ def cli(
 ):
     """Fetch GEO data based on user input."""
     logger = initialize_logger(log_level)
+
+
+    # if output file exists, throw an error and exit
+    if hasattr(ctx, 'filename_error'):
+        logger.error(ctx.filename_error)
+        ctx.exit(1)
+    else:
+        logger.info(f"Output will be written to {file_name}")
 
     search_term = []
 
