@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.0](https://github.com/hassanfa/geo_query/compare/v4.1.0...v4.2.0) (2024-12-05)
+
+
+### Features
+
+* add pyarrow as dependecnies ([105dcfe](https://github.com/hassanfa/geo_query/commit/105dcfe141ef02f55d24dae4edd1b03d2e169855))
+* support writing output as parquet file ([920262d](https://github.com/hassanfa/geo_query/commit/920262d9248818dbc36cbafd7567d3e5c8191701))
+
 ## [4.1.0](https://github.com/hassanfa/geo_query/compare/v4.0.0...v4.1.0) (2024-12-05)
 
 
