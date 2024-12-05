@@ -16,10 +16,15 @@ from xlsxwriter import Workbook
 from geo_query.version import __version__ as version
 
 
-def write_df_to_file(df, filename, filetype, logger, comments, worksheet="geofetch"):
+def write_df_to_file(df, filename, filetype, logger, search_term, worksheet="geofetch"):
     """
     Write a Polars DataFrame to a file.
     """
+    comments = [
+        f"# geofetch version: {version}",
+        f"# date: {datetime.now().strftime('%Y%m%d')}",
+        f"# query: {search_term}",
+    ]
     try:
         if filetype.lower() == "csv":
             with open(filename, mode="a") as f:
@@ -28,6 +33,7 @@ def write_df_to_file(df, filename, filetype, logger, comments, worksheet="geofet
                 df.write_csv(f)
         else:
             with Workbook(filename) as wb:
+                # comments start at the start of the position
                 sheet_position = [0, 0]
                 df_comments = pl.DataFrame(comments)
                 df_comments.write_excel(
@@ -37,7 +43,7 @@ def write_df_to_file(df, filename, filetype, logger, comments, worksheet="geofet
                     include_header=False,
                 )
 
-                # change sheet position to rows after comments
+                # update sheet position to rows after comments
                 sheet_position[0] += df_comments.height
                 df.write_excel(
                     workbook=wb,
@@ -394,16 +400,11 @@ def cli(
         )
 
         if file_write:
-            outputheader = [
-                f"# geofetch version: {version}",
-                f"# date: {datetime.now().strftime('%Y%m%d')}",
-                f"# query: {search_term}",
-            ]
             write_df_to_file(
                 df=df,
+                search_term=search_term,
                 filename=file_name,
                 filetype=file_type,
-                comments=outputheader,
                 logger=logger,
             )
 
