@@ -10,7 +10,6 @@ from datetime import datetime
 
 import click
 import polars as pl
-import pyarrow as pa
 import pyarrow.parquet as pq
 from Bio import Entrez
 from xlsxwriter import Workbook
