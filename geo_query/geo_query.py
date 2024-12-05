@@ -11,11 +11,12 @@ from datetime import datetime
 import click
 import polars as pl
 from Bio import Entrez
+from xlsxwriter import Workbook
 
 from geo_query.version import __version__ as version
 
 
-def write_df_to_file(df, filename, filetype, logger, comments):
+def write_df_to_file(df, filename, filetype, logger, comments, worksheet="geofetch"):
     """
     Write a Polars DataFrame to a file.
     """
@@ -26,10 +27,25 @@ def write_df_to_file(df, filename, filetype, logger, comments):
                     f.write(f"{line}\n")
                 df.write_csv(f)
         else:
-            # Excel won't work with comments, and one need to add
-            # cell start and add comments on another row!
-            # check polars manual
-            df.write_excel(filename)
+            with Workbook(filename) as wb:
+                sheet_position = [0, 0]
+                df_comments = pl.DataFrame(comments)
+                df_comments.write_excel(
+                    workbook=wb,
+                    worksheet=worksheet,
+                    position=tuple(sheet_position),
+                    include_header=False,
+                )
+
+                # change sheet position to rows after comments
+                sheet_position[0] += df_comments.height
+                df.write_excel(
+                    workbook=wb,
+                    worksheet=worksheet,
+                    position=tuple(sheet_position),
+                    include_header=False,
+                )
+
         logger.info(f"File successfully written to {filename}")
     except Exception as e:
         logger.error(f"Error writing file: {str(e)}")
