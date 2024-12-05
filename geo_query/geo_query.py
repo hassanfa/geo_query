@@ -15,6 +15,27 @@ from Bio import Entrez
 from geo_query.version import __version__ as version
 
 
+def write_df_to_file(df, filename, filetype, logger, comments):
+    """
+    Write a Polars DataFrame to a file.
+    """
+    try:
+        if filetype.lower() == "csv":
+            with open(filename, mode="a") as f:
+                for line in comments:
+                    f.write(f"{line}\n")
+                df.write_csv(f)
+        else:
+            # Excel won't work with comments, and one need to add
+            # cell start and add comments on another row!
+            # check polars manual
+            df.write_excel(filename)
+        logger.info(f"File successfully written to {filename}")
+    except Exception as e:
+        logger.error(f"Error writing file: {str(e)}")
+        raise e
+
+
 def default_filename():
     """
     creates a default filename with a today date suffix
@@ -181,7 +202,8 @@ def initialize_logger(log_level):
     Initalizes logger and encapsulates it
     """
     logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.ERROR,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
@@ -259,7 +281,7 @@ def initialize_logger(log_level):
 @click.option(
     "--log-level",
     default="WARNING",
-    type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False),
+    type=click.Choice(["WARNING", "INFO", "DEBUG", "ERROR"], case_sensitive=False),
     help="Logging level in terms of urgency",
     show_default=True,
 )
@@ -306,7 +328,7 @@ def cli(
     file_type,
 ):
     """Fetch GEO data based on user input."""
-    logger = initialize_logger(log_level)
+    logger = initialize_logger(getattr(logging, log_level))
 
     # if output file exists, throw an error and exit
     if hasattr(ctx, "filename_error"):
@@ -356,7 +378,18 @@ def cli(
         )
 
         if file_write:
-            click.echo("writing to file")
+            outputheader = [
+                f"# geofetch version: {version}",
+                f"# date: {datetime.now().strftime('%Y%m%d')}",
+                f"# query: {search_term}",
+            ]
+            write_df_to_file(
+                df=df,
+                filename=file_name,
+                filetype=file_type,
+                comments=outputheader,
+                logger=logger,
+            )
 
         if not df is None:
             pl.Config.set_tbl_rows(-1)
