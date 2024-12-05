@@ -1,4 +1,5 @@
 click
 xlsxwriter
 polars
+pyarrow
 Biopython
