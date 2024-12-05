@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.1.0](https://github.com/hassanfa/geo_query/compare/v4.0.0...v4.1.0) (2024-12-05)
+
+
+### Features
+
+* add funcionality to handle the output file ([1aa2ba9](https://github.com/hassanfa/geo_query/commit/1aa2ba96bdc00b075f21852ae4a4caf21df8d378))
+* add support to write CSV output ([90584e6](https://github.com/hassanfa/geo_query/commit/90584e66c260d315ad0ffad41e6319ba97991356))
+* support exporting the output as excel ([952e79d](https://github.com/hassanfa/geo_query/commit/952e79d11ed7452b2a5974e142daa0630322cab6))
+
+
+### Bug Fixes
+
+* move comments into write_df_.. function ([56f8b15](https://github.com/hassanfa/geo_query/commit/56f8b15f93ae7f2f4e12d5ef100b847cd396861d))
+* remove redunant version file ([b7cf49f](https://github.com/hassanfa/geo_query/commit/b7cf49f1c14b2e06ff1bce96bdb915def1c32fb5))
+* version import ([9cb7ea2](https://github.com/hassanfa/geo_query/commit/9cb7ea2d62d440520ca78feaf00f73c20ff9ea21))
+
 ## [4.0.0](https://github.com/hassanfa/geo_query/compare/v3.1.0...v4.0.0) (2024-12-02)
 
 
