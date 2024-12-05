@@ -10,6 +10,8 @@ from datetime import datetime
 
 import click
 import polars as pl
+import pyarrow as pa
+import pyarrow.parquet as pq
 from Bio import Entrez
 from xlsxwriter import Workbook
 
@@ -31,6 +33,13 @@ def write_df_to_file(df, filename, filetype, logger, search_term, worksheet="geo
                 for line in comments:
                     f.write(f"{line}\n")
                 df.write_csv(f)
+        elif filetype.lower() == "parquet":
+            table = df.to_arrow()
+
+            metadata = {b"comments": b"\n".join(line.encode() for line in comments)}
+            table = table.replace_schema_metadata(metadata)
+
+            pq.write_table(table, filename)
         else:
             with Workbook(filename) as wb:
                 # comments start at the start of the position
@@ -326,7 +335,7 @@ def initialize_logger(log_level):
     "-ft",
     "--file-type",
     default="csv",
-    type=click.Choice(["csv", "excel"]),
+    type=click.Choice(["csv", "excel", "parquet"]),
     show_default=True,
     help="Output file type.",
 )
@@ -410,7 +419,6 @@ def cli(
 
         if not df is None:
             pl.Config.set_tbl_rows(-1)
-            click.echo(df.shape)
             click.echo(df.head())
             pl.Config.set_tbl_rows(10)
 
