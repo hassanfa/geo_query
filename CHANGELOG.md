@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://github.com/hassanfa/geo_query/compare/v4.2.0...v4.3.0) (2024-12-06)
+
+
+### Features
+
+* add support for any sample ([46b5852](https://github.com/hassanfa/geo_query/commit/46b5852becfd1d28da5fe32549ed71c555b5a158))
+
 ## [4.2.0](https://github.com/hassanfa/geo_query/compare/v4.1.0...v4.2.0) (2024-12-05)
 
 
