@@ -301,7 +301,7 @@ def initialize_logger(log_level):
     multiple=True,
     default=["rna"],
     show_default=True,
-    type=click.Choice(["rna", "mpss", "sage", "protein", "genomic"]),
+    type=click.Choice(["rna", "mpss", "sage", "protein", "genomic", "any"]),
     help="Type of sample.",
 )
 @click.option("-t", "--title", multiple=True, help="Title(s) of the study or dataset.")
@@ -378,9 +378,11 @@ def cli(
     search_term.append(
         f"({date_start}[Publication Date] : {date_end}[Publication Date])"
     )
-    search_term.append(
-        build_query(terms=sample, query_type="Sample Type", operator="OR")
-    )
+    if "any" not in sample:
+        search_term.append(
+            build_query(terms=sample, query_type="Sample Type", operator="OR")
+        )
+
     search_term.append(
         build_query(terms=mesh, query_type="MeSH Terms", operator=mesh_operator)
     )
