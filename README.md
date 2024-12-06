@@ -13,10 +13,9 @@ geofetch --entry gse --sample rna --sample mpss  --sample sage  --organism human
 ### Cli
 
 ```bash
-
 Usage: geofetch [OPTIONS]
 
-  Query GEO database for series, samples, and datasets.}
+  Query GEO database for series, samples, and datasets. version 4.3.0
 
 Options:
   --count / --print-records       print counts or print records.  [default:
@@ -34,12 +33,16 @@ Options:
                                   [default: Diabetes Mellitus, Type 2]
   -mo, --mesh-operator [OR|AND]   Operator for Medical Subject Headings (MeSH)
                                   terms.  [default: OR]
-  -s, --sample [rna|mpss|sage|protein|genomic]
+  -s, --sample [rna|mpss|sage|protein|genomic|any]
                                   Type of sample.  [default: rna]
   -t, --title TEXT                Title(s) of the study or dataset.
   -d, --description TEXT          Description(s) of the study or dataset.
-  --log-level [INFO|DEBUG]        Logging level in terms of urgency  [default:
-                                  INFO]
+  --log-level [WARNING|INFO|DEBUG|ERROR]
+                                  Logging level in terms of urgency  [default:
+                                  WARNING]
+  -fw, --file-write               flag to enable to write to file
+  -fn, --file-name TEXT           Output file name.  [default:
+                                  geofetch_20241206]
+  -ft, --file-type [csv|excel|parquet]
+                                  Output file type.  [default: csv]
   --help                          Show this message and exit.
-
-```
