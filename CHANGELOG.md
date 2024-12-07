@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0](https://github.com/hassanfa/geo_query/compare/v4.3.0...v4.4.0) (2024-12-07)
+
+
+### Features
+
+* add FTP link to the table ([0d1909b](https://github.com/hassanfa/geo_query/commit/0d1909b77436c1af49abfe185b97f55077be4a31))
+
 ## [4.3.0](https://github.com/hassanfa/geo_query/compare/v4.2.0...v4.3.0) (2024-12-06)
 
 
