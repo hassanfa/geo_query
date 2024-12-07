@@ -162,6 +162,7 @@ class EntrezGDS:
                     "GPL": s["GPL"],
                     "GSMtaxon": s["taxon"],
                     "GSM": s["Accession"],
+                    "FTP": s["FTPLink"],
                 }
                 for s in summary
             ]
@@ -182,6 +183,7 @@ class EntrezGDS:
                     "GSEtaxon": s["taxon"],
                     "GSM": [sample["Accession"] for sample in s["Samples"]],
                     "SampleCount": len(s["Samples"]),
+                    "FTP": s["FTPLink"],
                 }
                 for s in summary
             ]
