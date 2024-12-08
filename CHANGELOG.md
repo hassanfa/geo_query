@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.1](https://github.com/hassanfa/geo_query/compare/v4.4.0...v4.4.1) (2024-12-08)
+
+
+### Bug Fixes
+
+* nested DF for GSM values ([f1990b0](https://github.com/hassanfa/geo_query/commit/f1990b0fa32c239e0639b631f0f293168483cac8))
+
 ## [4.4.0](https://github.com/hassanfa/geo_query/compare/v4.3.0...v4.4.0) (2024-12-07)
 
 
