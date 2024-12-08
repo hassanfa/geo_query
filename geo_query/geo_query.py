@@ -190,7 +190,10 @@ class EntrezGDS:
         )
 
         df = self._add_mesh_column(df, mesh)
+        df = self._prefix_column(df, "GSE")
         df = self._explode_columns(df, ["GSE", "mesh"])
+
+        df = df.explode('GSM')
 
         return df
 
@@ -411,6 +414,11 @@ def cli(
             search_term=search_term, mesh=mesh, count=record["Count"]
         )
 
+        if not df is None:
+            pl.Config.set_tbl_rows(-1)
+            click.echo(df)
+            pl.Config.set_tbl_rows(10)
+
         if file_write:
             write_df_to_file(
                 df=df,
@@ -419,11 +427,6 @@ def cli(
                 filetype=file_type,
                 logger=logger,
             )
-
-        if not df is None:
-            pl.Config.set_tbl_rows(-1)
-            click.echo(df.head())
-            pl.Config.set_tbl_rows(10)
 
 
 if __name__ == "__main__":
