@@ -365,6 +365,8 @@ def cli(
     """Fetch GEO data based on user input."""
     logger = initialize_logger(getattr(logging, log_level))
 
+    logger.info(f"Running geofetch {version}")
+
     # if output file exists, throw an error and exit
     if hasattr(ctx, "filename_error"):
         logger.error(ctx.filename_error)
