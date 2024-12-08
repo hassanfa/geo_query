@@ -190,7 +190,6 @@ class EntrezGDS:
         )
 
         df = self._add_mesh_column(df, mesh)
-        df = self._prefix_column(df, "GSE")
         df = self._explode_columns(df, ["GSE", "mesh"])
 
         df = df.explode("GSM")
