@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.2](https://github.com/hassanfa/geo_query/compare/v4.4.1...v4.4.2) (2024-12-08)
+
+
+### Bug Fixes
+
+* remove faulty prefix from start of GSE column ([d03f490](https://github.com/hassanfa/geo_query/commit/d03f490d71376695710cc34465d8b0416d36d563))
+
 ## [4.4.1](https://github.com/hassanfa/geo_query/compare/v4.4.0...v4.4.1) (2024-12-08)
 
 
