@@ -10,6 +10,7 @@ from datetime import datetime
 
 import click
 import polars as pl
+import pyarrow as pa
 import pyarrow.parquet as pq
 from Bio import Entrez
 from xlsxwriter import Workbook
@@ -31,11 +32,18 @@ def write_df_to_file(df, filename, filetype, logger, search_term, worksheet="geo
             with open(filename, mode="a") as f:
                 for line in comments:
                     f.write(f"{line}\n")
-                df.write_csv(f)
+                if not df.is_empty():
+                    df.write_csv(f)
         elif filetype.lower() == "parquet":
-            table = df.to_arrow()
 
             metadata = {b"comments": b"\n".join(line.encode() for line in comments)}
+
+            if df.is_empty():
+                schema = pa.schema([])
+                table = pa.Table.from_pydict({}, schema=schema)
+            else:
+                table = df.to_arrow()
+
             table = table.replace_schema_metadata(metadata)
 
             pq.write_table(table, filename)
@@ -51,14 +59,15 @@ def write_df_to_file(df, filename, filetype, logger, search_term, worksheet="geo
                     include_header=False,
                 )
 
-                # update sheet position to rows after comments
-                sheet_position[0] += df_comments.height
-                df.write_excel(
-                    workbook=wb,
-                    worksheet=worksheet,
-                    position=tuple(sheet_position),
-                    include_header=False,
-                )
+                if not df.is_empty():
+                    # update sheet position to rows after comments
+                    sheet_position[0] += df_comments.height
+                    df.write_excel(
+                        workbook=wb,
+                        worksheet=worksheet,
+                        position=tuple(sheet_position),
+                        include_header=False,
+                    )
 
         logger.info(f"File successfully written to {filename}")
     except Exception as e:
@@ -145,10 +154,10 @@ class EntrezGDS:
 
         if len(record["IdList"]) == 0:
             self.logger.warning("Search result returned zero output")
-            return None
+            return pl.DataFrame()
 
         summary = self.esummary(search_id=record["IdList"])
-        entry_type = summary[1]["entryType"].lower()
+        entry_type = summary[0]["entryType"].lower()
 
         if entry_type == "gsm":
             return self._process_gsm(summary, mesh)
@@ -419,6 +428,9 @@ def cli(
             pl.Config.set_tbl_rows(-1)
             click.echo(df)
             pl.Config.set_tbl_rows(10)
+
+        if df.is_empty() and file_write:
+            logger.warning("Query returned no results. Output file will be empty.")
 
         if file_write:
             write_df_to_file(
