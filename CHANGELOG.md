@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.3](https://github.com/hassanfa/geo_query/compare/v4.4.2...v4.4.3) (2024-12-09)
+
+
+### Bug Fixes
+
+* handle empty queries gracefully! ([5993c9d](https://github.com/hassanfa/geo_query/commit/5993c9d56b3d2138e6330c8fb1be355dc032c63c))
+
 ## [4.4.2](https://github.com/hassanfa/geo_query/compare/v4.4.1...v4.4.2) (2024-12-08)
 
 
