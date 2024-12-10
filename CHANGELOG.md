@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.4](https://github.com/hassanfa/geo_query/compare/v4.4.3...v4.4.4) (2024-12-10)
+
+
+### Bug Fixes
+
+* print table if fwrite is not enabled ([fb3cf25](https://github.com/hassanfa/geo_query/commit/fb3cf25518b7266d86e707a1f50e047ced3cb409))
+
 ## [4.4.3](https://github.com/hassanfa/geo_query/compare/v4.4.2...v4.4.3) (2024-12-09)
 
 
