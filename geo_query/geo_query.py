@@ -418,13 +418,14 @@ def cli(
 
     if count:
         click.echo(f"{record['Count']}")
+
     else:
 
         df = entrez_gds.process_record(
             search_term=search_term, mesh=mesh, count=record["Count"]
         )
 
-        if not df is None:
+        if not df is None and not file_write:
             pl.Config.set_tbl_rows(-1)
             click.echo(df)
             pl.Config.set_tbl_rows(10)
